@@ -20,9 +20,10 @@
         <div class="col-sm-6">
             <h1 class="monospace">
                 {{ venue.name }}
-
-                <button id="remove">&cross;</button>
             </h1>
+                <button id="edit">Edit</button>
+
+                <button id="remove">Delete</button>
             <p id="idOfVen" data-id="{{ venue.id }}" class="subtitle">
                 ID: {{ venue.id }}
             </p>
@@ -107,15 +108,23 @@
     <script>
         $('#remove').click(function () {
             if (confirm('Are you sure you want to Remove This Venue ?')) {
-                const id = $('#idOfVen').attr("data-id");
                 fetch('{{ url_for('router.delete_venue',venue_id=venue.id) }}',
                     {method: 'DELETE'}).then(function (data) {
-
                     window.location = data['url'];
                 })
 
             } else {
             }
+        })
+
+
+    $('#edit').click(function () {
+                fetch('{{ url_for('router.edit_venue',venue_id=venue.id) }}',
+                    {method: 'GET'}).then(function (data) {
+                    window.location = data['url'];
+                })
+
+
         })
     </script>
 {% endblock %}

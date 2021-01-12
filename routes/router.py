@@ -98,6 +98,8 @@ def create_venue_submission():
         venues.phone = request.form['phone']
         venues.facebook_link = request.form['facebook_link']
         venues.image_link = request.form['image_link']
+        venues.website = request.form['website']
+
         # Convert List To String Speated By ,
         venues.genres = ','.join(request.form.getlist('genres'))
         db.session.add(venues)
@@ -120,7 +122,6 @@ def delete_venue(venue_id):
     error = False
     try:
         # shows=
-        Show.query.filter(Show.ven_id == venue_id).delete()
         venue = Venue.query.get(venue_id)
         db.session.delete(venue)
         db.session.commit()
@@ -149,7 +150,8 @@ def edit_venue(venue_id):
         phone=ven.phone,
         genres=ven.genres.split(','),
         image_link=ven.image_link,
-        facebook_link=ven.facebook_link
+        facebook_link=ven.facebook_link,
+        website=ven.website
     )
     return render_template('forms/edit_venue.html', form=form, venue=ven)
 
@@ -166,6 +168,8 @@ def edit_venue_submission(venue_id):
         venues.phone = request.form['phone']
         venues.facebook_link = request.form['facebook_link']
         venues.image_link = request.form['image_link']
+        venues.website = request.form['website']
+
         venues.genres = ','.join(request.form.getlist('genres'))
         db.session.commit()
     except:
@@ -208,10 +212,31 @@ def search_artists():
 def show_artist(artist_id):
     return render_template('pages/show_artist.html', artist=Artist.query.get(artist_id).get_show_ojb())
 
+@router.route('/artists/<ast_id>', methods=['DELETE'])
+def delete_artist(ast_id):
+    error = False
+    try:
+        # shows=
+        artist = Artist.query.get(ast_id)
+        db.session.delete(artist)
+        db.session.commit()
+    except:
+        db.session.rollback()
+        error = True
+        print(sys.exc_info())
+    finally:
+        db.session.close()
+        if error:
+            flash("Error While deleting")
+        else:
+            flash("Successful opreation")
 
-@router.route('/artists/<int:artist_id>/edit', methods=['GET'])
-def edit_artist(artist_id):
-    artist = Artist.query.get(artist_id)
+    return redirect(url_for('router.index'))
+
+
+@router.route('/artists/<int:ast_id>/edit', methods=['GET'])
+def edit_artist(ast_id):
+    artist = Artist.query.get(ast_id)
     form = ArtistForm(
         name=artist.name,
         genres=artist.genres.split(','),
@@ -243,6 +268,7 @@ def create_artist_submission():
         artist.phone = request.form['phone']
         artist.facebook_link = request.form['facebook_link']
         artist.image_link = request.form['image_link']
+        artist.website = request.form['website']
         # Convert List To String Speated By ,
         artist.genres = ','.join(request.form.getlist('genres'))
         db.session.add(artist)
@@ -271,6 +297,8 @@ def edit_artist_submission(artist_id):
         artist.phone = request.form['phone']
         artist.facebook_link = request.form['facebook_link']
         artist.image_link = request.form['image_link']
+        artist.website = request.form['website']
+
         # Convert List To String Speated By ,
         artist.genres = ','.join(request.form.getlist('genres'))
         db.session.commit()
