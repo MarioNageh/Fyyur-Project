@@ -88,32 +88,25 @@ def create_venue_form():
 
 @router.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-    error = False
-    try:
-        venues = Venue()
-        venues.name = request.form['name']
-        venues.city = request.form['city']
-        venues.state = request.form['state']
-        venues.address = request.form['address']
-        venues.phone = request.form['phone']
-        venues.facebook_link = request.form['facebook_link']
-        venues.image_link = request.form['image_link']
-        venues.website = request.form['website']
-
-        # Convert List To String Speated By ,
-        venues.genres = ','.join(request.form.getlist('genres'))
-        db.session.add(venues)
-        db.session.commit()
-    except:
-        db.session.rollback()
-        error = True
-    finally:
-        db.session.close()
-        if error:
-            flash('Error ' + request.form['name'] + ' Error While Insert')
-        else:
-            flash('Venue ' + request.form['name'] + ' was successfully listed!')
-
+    form = ArtistForm(request.form)
+    if form.validate_on_submit():
+        error = False
+        try:
+            venue = Venue()
+            form.populate_obj(venue)
+            db.session.add(venue)
+            db.session.commit()
+        except:
+            db.session.rollback()
+            error = True
+        finally:
+            db.session.close()
+            if error:
+                flash('Error ' + request.form['name'] + ' Error While Insert')
+            else:
+                flash('Venue ' + request.form['name'] + ' was successfully listed!')
+    else:
+        flash('Error ' + 'Missing Some Input')
     return render_template('pages/home.html')
 
 
@@ -259,30 +252,25 @@ def create_artist_form():
 
 @router.route('/artists/create', methods=['POST'])
 def create_artist_submission():
-    error = False
-    try:
-        artist = Artist()
-        artist.name = request.form['name']
-        artist.city = request.form['city']
-        artist.state = request.form['state']
-        artist.phone = request.form['phone']
-        artist.facebook_link = request.form['facebook_link']
-        artist.image_link = request.form['image_link']
-        artist.website = request.form['website']
-        # Convert List To String Speated By ,
-        artist.genres = ','.join(request.form.getlist('genres'))
-        db.session.add(artist)
-        db.session.commit()
-    except:
-        db.session.rollback()
-        error = True
-        print(sys.exc_info())
-    finally:
-        db.session.close()
-        if error:
-            flash('Artist ' + request.form['name'] + ' was Error In Inserting')
-        else:
-            flash("Artist " + request.form['name'] + ' Was Inserted Succ!')
+    form = ArtistForm(request.form)
+    if form.validate_on_submit():
+        error = False
+        try:
+            artist = Artist()
+            form.populate_obj(artist)
+            db.session.add(artist)
+            db.session.commit()
+        except:
+            db.session.rollback()
+            error = True
+        finally:
+            db.session.close()
+            if error:
+                flash('Error ' + request.form['name'] + ' Error While Insert')
+            else:
+                flash('Artist ' + request.form['name'] + ' was successfully listed!')
+    else:
+        flash('Error ' + 'Missing Some Input')
     return render_template('pages/home.html')
 
 
@@ -340,25 +328,24 @@ def create_shows():
 
 @router.route('/shows/create', methods=['POST'])
 def create_show_submission():
-    error = False
-    try:
-        shows = Show()
-        shows.artist_id = request.form['artist_id']
-        shows.ven_id = request.form['venue_id']
-        shows.start_time = request.form['start_time']
-        db.session.add(shows)
-        db.session.commit()
-    except:
-        db.session.rollback()
-        error = True
-    finally:
-        db.session.close()
-        if error:
-            flash('Error In Add New Show')
-        else:
-            flash('Show was successfully listed!')
+    form = ShowForm(request.form)
+    if form.validate_on_submit():
+        error = False
+        try:
+            show = Show()
+            form.populate_obj(show)
+            db.session.add(show)
+            db.session.commit()
+        except:
+            db.session.rollback()
+            error = True
+        finally:
+            db.session.close()
+            if error:
+                flash('Error ' + request.form['name'] + ' Error While Insert')
+            else:
+                flash('Show ' + request.form['name'] + ' was successfully listed!')
+    else:
+        flash('Error ' + 'Missing Some Input')
     return render_template('pages/home.html')
-
-
-
 

@@ -1,8 +1,8 @@
 from flask_sqlalchemy import SQLAlchemy
-import datetime
 
 from sqlalchemy.orm import backref
 from sqlalchemy.sql import func
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -40,8 +40,33 @@ class Venue(db.Model):
 
     # Here We Will Overide The to_dict to get It From Query Dircet
     def get_show_oject(self):
-        pastShows=[ show.getArtist() for show in self.shows if show.start_time<datetime.datetime.today() ]
-        upcomingShows=[ show.getArtist() for show in self.shows if show.start_time>datetime.datetime.today() ]
+        past_shows = db.session.query(Artist, Show).join(Show).join(Venue). \
+            filter(
+            Show.ven_id == self.id,
+            Show.artist_id == Artist.id,
+            Show.start_time < datetime.now()
+        ). \
+            all()
+        upcoming_shows = db.session.query(Artist, Show).join(Show).join(Venue). \
+            filter(
+            Show.ven_id == self.id,
+            Show.artist_id == Artist.id,
+            Show.start_time > datetime.now()
+        ). \
+            all()
+
+        pastShows = [{
+            'artist_id': artist.id,
+            'artist_name': artist.name,
+            'artist_image_link': artist.image_link,
+            'start_time': show.start_time.strftime("%m/%d/%Y, %H:%M")
+        } for artist, show in past_shows]
+        upcomingShows = [{
+            'artist_id': artist.id,
+            'artist_name': artist.name,
+            'artist_image_link': artist.image_link,
+            'start_time': show.start_time.strftime("%m/%d/%Y, %H:%M")
+        } for artist, show in upcoming_shows]
         return {
             'id': self.id,
             'name': self.name,
@@ -55,11 +80,13 @@ class Venue(db.Model):
             'website': self.website,
             'seeking_talent': self.seeking_talent,
             'seeking_description': self.seeking_description,
-            'past_shows':pastShows,
-            'upcoming_shows':upcomingShows,
-            'past_shows_count':len(pastShows),
-            'upcoming_shows_count':len(upcomingShows),
+            'past_shows': pastShows,
+            'upcoming_shows': upcomingShows,
+            'past_shows_count': len(pastShows),
+            'upcoming_shows_count': len(upcomingShows),
         }
+
+
 class Artist(db.Model):
     __tablename__ = 'Artist'
     id = db.Column(db.Integer, primary_key=True)
@@ -71,18 +98,47 @@ class Artist(db.Model):
     facebook_link = db.Column(db.String(120))
     website = db.Column(db.String(120))
     seeking_description = db.Column(db.String(500))
-    seeking_venue=db.Column(db.Boolean,default=False,nullable=False)
+    seeking_venue = db.Column(db.Boolean, default=False, nullable=False)
 
-    shows=db.relationship("Show",backref='Artist',order_by='Show.start_time')
-    venue=db.relationship('Venue',secondary='shows')
-    genres=db.Column(db.String())
+    shows = db.relationship("Show", backref='Artist', order_by='Show.start_time')
+    venue = db.relationship('Venue', secondary='shows')
+    genres = db.Column(db.String())
 
     def __repr__(self):
         return f' The Artist name is {self.name}'
+
     # self.genres.split(',') if self.genres is not None else '',
     def get_show_ojb(self):
-        pastVene=[x.getVenu() for x in self.shows if x.start_time<datetime.datetime.today()]
-        upcomingVene=[ x.getVenu() for x in self.shows if x.start_time>datetime.datetime.today()]
+        pastVenesData = db.session.query(Venue, Show).join(Show).join(Artist). \
+            filter(
+            Show.artist_id == self.id,
+            Show.ven_id == Venue.id,
+            Show.start_time < datetime.now()
+        ). \
+            all()
+        upcomingVeneData = db.session.query(Venue, Show).join(Show).join(Artist). \
+            filter(
+            Show.artist_id == self.id,
+            Show.ven_id == Venue.id,
+            Show.start_time > datetime.now()
+        ). \
+            all()
+        pastVene = [{
+            'venue_id': show.venue.id,
+            'venue_name': show.venue.name,
+            'venue_image_link': show.venue.image_link,
+            'start_time': show.start_time.strftime('%Y-%m-%d %H:%M:%S'),
+        } for
+            artist, show in pastVenesData
+        ]
+        upcomingVene = [{
+            'venue_id': show.venue.id,
+            'venue_name': show.venue.name,
+            'venue_image_link': show.venue.image_link,
+            'start_time': show.start_time.strftime('%Y-%m-%d %H:%M:%S'),
+        } for
+            artist, show in upcomingVeneData
+        ]
         return {
             "id": self.id,
             "name": self.name,
@@ -100,12 +156,14 @@ class Artist(db.Model):
             "past_shows_count": len(pastVene),
             "upcoming_shows_count": len(upcomingVene),
         }
+
+
 class Show(db.Model):
     # Juncation Table
     __tablename__ = 'shows'
     id = db.Column(db.Integer, primary_key=True)
     artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), nullable=False)
-    ven_id = db.Column(db.Integer, db.ForeignKey('Venue.id',ondelete='CASCADE'), nullable=False)
+    ven_id = db.Column(db.Integer, db.ForeignKey('Venue.id', ondelete='CASCADE'), nullable=False)
     # start_time = db.Column(db.DateTime(timezone=True), nullable=False, default=func.now())
     start_time = db.Column(db.DateTime, nullable=False, default=func.now())
 
@@ -122,14 +180,14 @@ class Show(db.Model):
             'artist_name': self.artist.name,
             'artist_image_link': self.artist.image_link
         }
+
     def getVenu(self):
         return {
-            'venue_id':self.venue.id,
-            'venue_name':self.venue.name,
-            'venue_image_link':self.venue.image_link,
+            'venue_id': self.venue.id,
+            'venue_name': self.venue.name,
+            'venue_image_link': self.venue.image_link,
             'start_time': self.start_time.strftime('%Y-%m-%d %H:%M:%S'),
         }
-
 
 # ----------------------------------------------------------------------------#
 # End - - Models.
