@@ -88,25 +88,33 @@ def create_venue_form():
 
 @router.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-    form = ArtistForm(request.form)
-    if form.validate_on_submit():
-        error = False
-        try:
-            venue = Venue()
-            form.populate_obj(venue)
-            db.session.add(venue)
-            db.session.commit()
-        except:
-            db.session.rollback()
-            error = True
-        finally:
-            db.session.close()
-            if error:
-                flash('Error ' + request.form['name'] + ' Error While Insert')
-            else:
-                flash('Venue ' + request.form['name'] + ' was successfully listed!')
-    else:
-        flash('Error ' + 'Missing Some Input')
+    error = False
+    try:
+        venues = Venue()
+        venues.name = request.form['name']
+        venues.city = request.form['city']
+        venues.state = request.form['state']
+        venues.address = request.form['address']
+        venues.phone = request.form['phone']
+        venues.facebook_link = request.form['facebook_link']
+        venues.image_link = request.form['image_link']
+        # Convert List To String Speated By ,
+        venues.genres = ','.join(request.form.getlist('genres'))
+        venues.seeking_talent=True if request.form["seeking_talent"]=="True" else False
+        venues.seeking_description = request.form["seeking_description"]
+        db.session.add(venues)
+        db.session.commit()
+    except Exception as ee:
+        print(ee)
+        db.session.rollback()
+        error = True
+    finally:
+        db.session.close()
+        if error:
+            flash('Error ' + request.form['name'] + ' Error While Insert')
+        else:
+            flash('Venue ' + request.form['name'] + ' was successfully listed!')
+
     return render_template('pages/home.html')
 
 
@@ -144,7 +152,10 @@ def edit_venue(venue_id):
         genres=ven.genres.split(','),
         image_link=ven.image_link,
         facebook_link=ven.facebook_link,
-        website=ven.website
+        website=ven.website,
+        seeking_talent=ven.seeking_talent,
+        seeking_description=ven.seeking_description
+
     )
     return render_template('forms/edit_venue.html', form=form, venue=ven)
 
@@ -162,7 +173,8 @@ def edit_venue_submission(venue_id):
         venues.facebook_link = request.form['facebook_link']
         venues.image_link = request.form['image_link']
         venues.website = request.form['website']
-
+        venues.seeking_talent=True if request.form["seeking_talent"]=="True" else False
+        venues.seeking_description=request.form["seeking_description"]
         venues.genres = ','.join(request.form.getlist('genres'))
         db.session.commit()
     except:
@@ -239,7 +251,8 @@ def edit_artist(ast_id):
         website=artist.website,
         facebook_link=artist.facebook_link,
         image_link=artist.image_link,
-        seeking_description=artist.seeking_description
+        seeking_description=artist.seeking_description,
+        seeking_venue=artist.seeking_venue,
     )
     return render_template('forms/edit_artist.html', form=form, artist=artist)
 
@@ -252,25 +265,33 @@ def create_artist_form():
 
 @router.route('/artists/create', methods=['POST'])
 def create_artist_submission():
-    form = ArtistForm(request.form)
-    if form.validate_on_submit():
-        error = False
-        try:
-            artist = Artist()
-            form.populate_obj(artist)
-            db.session.add(artist)
-            db.session.commit()
-        except:
-            db.session.rollback()
-            error = True
-        finally:
-            db.session.close()
-            if error:
-                flash('Error ' + request.form['name'] + ' Error While Insert')
-            else:
-                flash('Artist ' + request.form['name'] + ' was successfully listed!')
-    else:
-        flash('Error ' + 'Missing Some Input')
+    error = False
+    try:
+        artist = Artist()
+        artist.name = request.form['name']
+        artist.city = request.form['city']
+        artist.state = request.form['state']
+        artist.phone = request.form['phone']
+        artist.facebook_link = request.form['facebook_link']
+        artist.image_link = request.form['image_link']
+        artist.seeking_description=request.form['seeking_description']
+        artist.seeking_venue=True if request.form["seeking_venue"]=="True" else False
+
+        # Convert List To String Speated By ,
+        artist.genres = ','.join(request.form.getlist('genres'))
+
+        db.session.add(artist)
+        db.session.commit()
+    except:
+        db.session.rollback()
+        error = True
+        print(sys.exc_info())
+    finally:
+        db.session.close()
+        if error:
+            flash('Artist ' + request.form['name'] + ' was Error In Inserting')
+        else:
+            flash("Artist " + request.form['name'] + ' Was Inserted Succ!')
     return render_template('pages/home.html')
 
 
@@ -285,10 +306,11 @@ def edit_artist_submission(artist_id):
         artist.phone = request.form['phone']
         artist.facebook_link = request.form['facebook_link']
         artist.image_link = request.form['image_link']
-        artist.website = request.form['website']
-
         # Convert List To String Speated By ,
         artist.genres = ','.join(request.form.getlist('genres'))
+        artist.seeking_description = request.form['seeking_description']
+        artist.seeking_venue = True if request.form["seeking_venue"] == "True" else False
+
         db.session.commit()
     except:
         db.session.rollback()

@@ -1,6 +1,6 @@
 from datetime import datetime
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField
+from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from wtforms.validators import DataRequired, AnyOf, URL
 
@@ -99,7 +99,6 @@ class ShowForm(FlaskForm):
         validators=[DataRequired()],
         default= datetime.today()
     )
-
 class VenueForm(FlaskForm):
     name = StringField(
         'name', validators=[DataRequired()]
@@ -117,9 +116,7 @@ class VenueForm(FlaskForm):
     phone = StringField(
         'phone'
     )
-    image_link = StringField(
-        'image_link'
-    )
+
     genres = SelectMultipleField(
         # TODO implement enum restriction
         'genres', validators=[DataRequired()],
@@ -134,6 +131,11 @@ class VenueForm(FlaskForm):
     website = StringField(
         'website', validators=[URL()]
     )
+
+    seeking_description = StringField(
+        'seeking_description', validators=[URL()]
+    )
+    seeking_talent = SelectField('Talented', validators=[DataRequired()],choices=[True,False])
 
 class ArtistForm(FlaskForm):
     name = StringField(
@@ -165,4 +167,8 @@ class ArtistForm(FlaskForm):
     website = StringField(
         'website', validators=[URL()]
     )
+    seeking_description = StringField(
+        'seeking_description', validators=[URL()]
+    )
+    seeking_venue = SelectField('Talented', validators=[DataRequired()],choices=[True,False])
 
