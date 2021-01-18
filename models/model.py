@@ -31,13 +31,15 @@ class Venue(db.Model):
     genres = db.Column(db.String())
     website = db.Column(db.String())
     seeking_description = db.Column(db.String())
-    seeking_talent = db.Column(db.Boolean, default=False, nullable=False)
+    seeking_talent = db.Column(db.Boolean, default=False, nullable=False,server_default="false")
 
     def __repr__(self):
         if len(self.shows) > 0:
             print(self.shows)
-        return f'< {self.id} -> {self.name} -> {self.city}  ----> '
+        return str(self.id)
 
+    def venId(self):
+        return self.id
     # Here We Will Overide The to_dict to get It From Query Dircet
     def get_show_oject(self):
         past_shows = db.session.query(Artist, Show).join(Show).join(Venue). \
@@ -105,8 +107,10 @@ class Artist(db.Model):
     genres = db.Column(db.String())
 
     def __repr__(self):
-        return f' The Artist name is {self.name}'
+        return str(self.id)
 
+    def artistId(self):
+        return self.id
     # self.genres.split(',') if self.genres is not None else '',
     def get_show_ojb(self):
         pastVenesData = db.session.query(Venue, Show).join(Show).join(Artist). \

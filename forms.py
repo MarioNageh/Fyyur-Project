@@ -151,9 +151,6 @@ class ArtistForm(FlaskForm):
     phone = StringField(
         'phone'
     )
-    image_link = StringField(
-        'image_link'
-    )
     genres = SelectMultipleField(
         'genres', validators=[DataRequired()],
         choices=geners_choices
